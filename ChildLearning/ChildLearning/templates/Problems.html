@@ -1,0 +1,32 @@
+{% include "header.html" %}
+<div class="row">
+<form action="/result/" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Image</th>
+        <th>Question</th>
+        <th>Answer</th>
+        <th>Weight</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ form.file }}</td>
+        <td><input type="text" name="question" value=""></td>
+        <td><input type="text" name="answer" value=""></td>
+         <td><input type="text" name="weight" value=""></td>
+      </tr>
+    </tbody>
+  </table>
+<div class="row">
+   <div class="row">
+     <div class="col-md-4">
+     <input type="submit" class="btn btn-info" name="submit" value="Submit">
+     </div>
+   </div>  
+ </div>
+ </form>
+</div>
+{% include "footer.html" %}

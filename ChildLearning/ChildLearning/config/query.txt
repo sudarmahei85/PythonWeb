@@ -1,0 +1,17 @@
+CREATE TABLE `users` (
+  `users_id` varchar(45) NOT NULL,
+  `usersname` varchar(20) NOT NULL,
+  PRIMARY KEY (`users_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `problems` (
+  `problemId` int(9) NOT NULL AUTO_INCREMENT,
+  `users_id` varchar(45) DEFAULT NULL,
+  `file` varchar(200) DEFAULT NULL,
+  `weight` int(2) DEFAULT NULL,
+  `question` varchar(200) DEFAULT NULL,
+  `answer` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`problemId`),
+  KEY `userId_idx` (`users_id`),
+  CONSTRAINT `userId` FOREIGN KEY (`users_id`) REFERENCES `users` (`users_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;

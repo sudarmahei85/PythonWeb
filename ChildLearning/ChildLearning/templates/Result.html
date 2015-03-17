@@ -1,0 +1,35 @@
+{% include "header.html" %}
+<div class="row">
+<form action="/sendproblem/" method="post">
+{% csrf_token %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>Question</th>
+        <th>Answer</th>
+        <th>Weight</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for field in form %}
+      <tr>{{ field.problem }}: {{ field.data }}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+<div class="row">
+   <div class="row">
+     <div class="col-md-4">
+     <input type="submit" class="btn btn-info" name="submit" value="Submit">
+     </div>
+   </div>  
+ </div>
+ </form>
+</div>
+{% include "footer.html" %}
+ {{ form.questionno}}
+  {{ form.question}}
+  {{ form.answer}}
+  {{ form.file}}
+</body>
+</html>
