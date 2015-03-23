@@ -1,17 +1,47 @@
-CREATE TABLE `users` (
-  `users_id` varchar(45) NOT NULL,
-  `usersname` varchar(20) NOT NULL,
-  PRIMARY KEY (`users_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE `problems` (
   `problemId` int(9) NOT NULL AUTO_INCREMENT,
   `users_id` varchar(45) DEFAULT NULL,
   `file` varchar(200) DEFAULT NULL,
   `weight` int(2) DEFAULT NULL,
   `question` varchar(200) DEFAULT NULL,
-  `answer` varchar(200) DEFAULT NULL,
+  `respgrpanswer_id` int(9) DEFAULT NULL,
+  `respgrp_id` int(9) DEFAULT NULL,
   PRIMARY KEY (`problemId`),
   KEY `userId_idx` (`users_id`),
+  KEY `respgrpid_idx` (`respgrp_id`),
+  KEY `answer_idx` (`respgrpanswer_id`),
+  CONSTRAINT `Answer` FOREIGN KEY (`respgrpanswer_id`) REFERENCES `respgrpanswer` (`respgrpanswer_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `repsgrpid` FOREIGN KEY (`respgrp_id`) REFERENCES `respgrp` (`respgrp_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `userId` FOREIGN KEY (`users_id`) REFERENCES `users` (`users_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `respgrp` (
+  `respgrp_id` int(9) NOT NULL AUTO_INCREMENT,
+  `respgrpname` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`respgrp_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `respgrpanswer` (
+  `respgrp_id` int(9) DEFAULT NULL,
+  `respgrpanswer` varchar(45) DEFAULT NULL,
+  `respgrpanswer_id` int(9) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`respgrpanswer_id`),
+  KEY `respgrpid_idx` (`respgrp_id`),
+  CONSTRAINT `respgrpid` FOREIGN KEY (`respgrp_id`) REFERENCES `respgrp` (`respgrp_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `rewards` (
+  `rewards_id` int(9) NOT NULL AUTO_INCREMENT,
+  `users_id` varchar(45) DEFAULT NULL,
+  `rewardname` varchar(60) DEFAULT NULL,
+  `filename` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`rewards_id`),
+  KEY `rewarduserid_idx` (`users_id`),
+  CONSTRAINT `rewarduserid` FOREIGN KEY (`users_id`) REFERENCES `users` (`users_id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `users` (
+  `users_id` varchar(45) NOT NULL,
+  `usersname` varchar(20) NOT NULL,
+  PRIMARY KEY (`users_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

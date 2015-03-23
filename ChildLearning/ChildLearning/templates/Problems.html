@@ -1,4 +1,52 @@
 {% include "header.html" %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Flash Trainer</a>
+    </div>
+    <div>
+      <ul class="nav navbar-nav">
+        <li><a href="">Home</a></li>
+        <li class="active"><a href="/problem/">Create</a></li>
+        <li><a href="/problemSelect/">Send</a></li>
+        <li><a href="/rewards/">Reward</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<script>
+     $(document).ready(
+                      function() {
+                          $("select#respgrp").change(function() {
+                               if ($(this).val() == '') {
+                                  $("select#answer").html("<option>Select a Answer</option>");
+                                  $("select#answer").attr('disabled', true);
+                              }
+                              else {
+                                  var url = "/respgroup/" + $(this).val()+"/";
+                                  var respgroup = $(this).val();
+                                  $.getJSON(url, function(models) {
+                                      var options = '<option value="">Select a Answer</option>';
+                                      for (var i = 0; i < models.length; i++) {
+                                         options += '<option value="' + models[i].pk + '">' + models[i].fields['respgrpanswer'] + '</option>';
+                                      }
+                                      $("select#answer").html(options);
+                                      $("select#answer").attr('disabled', false);
+                                  });
+                              }
+                          });
+
+
+                          $("select#answer").change(function(vent) {
+                              if ($(this).val() == -1) {
+                                  return;
+                              }
+                              
+                          });
+                      });
+     
+
+</script>
 <div class="row">
 <form action="/result/" method="post" enctype="multipart/form-data">
 {% csrf_token %}
@@ -7,16 +55,37 @@
       <tr>
         <th>Image</th>
         <th>Question</th>
+        <th>Response Group</th>
         <th>Answer</th>
-        <th>Weight</th>
+        <th>Question Weight</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>{{ form.file }}</td>
-        <td><input type="text" name="question" value=""></td>
-        <td><input type="text" name="answer" value=""></td>
-         <td><input type="text" name="weight" value=""></td>
+        <td><input type="text" name="question" id="question" value=""></td>
+        <td>
+        <select name="respgrp" id="respgrp">
+         <option value="">Select a question Group</option>
+        {% for resp in resp_lis %}
+             <option value="{{ resp.respgrp_id}}">{{ resp.respgrpname}}</option>
+         {% endfor %}
+        </select>
+        </td>
+        <td>
+        <select name="answer" id="answer" disabled="true">
+         <option>Select a model</option>
+        </select>   
+        </td>
+         <td>
+          <select name="weight" id="weight">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+         </select>   
+        </td>
       </tr>
     </tbody>
   </table>
@@ -28,5 +97,6 @@
    </div>  
  </div>
  </form>
+ 
 </div>
 {% include "footer.html" %}

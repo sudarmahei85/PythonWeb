@@ -1,0 +1,44 @@
+{% include "header.html" %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Flash Trainer</a>
+    </div>
+    <div>
+      <ul class="nav navbar-nav">
+        <li><a href="">Home</a></li>
+        <li><a href="/problem/">Create</a></li>
+        <li><a href="/problemSelect/">Send</a></li>
+        <li class="active"><a href="/rewards/">Reward</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="row">
+<form action="/rewards/" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Reward File</th>
+        <th>Reward Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="width:50%">{{ form.filename }}</td>
+        <td><input type="text" name="rewardname" id="rewardname" value=""></td>
+      </tr>
+    </tbody>
+  </table>
+<div class="row">
+   <div class="row">
+     <div class="col-md-4">
+     <input type="submit" class="btn btn-info" name="submit" value="Submit">
+     </div>
+   </div>  
+ </div>
+ </form>
+ 
+</div>
+{% include "footer.html" %}
