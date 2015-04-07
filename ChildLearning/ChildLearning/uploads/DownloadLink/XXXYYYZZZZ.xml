@@ -1,0 +1,167 @@
+<?xml version="1.0" ?>
+<appname_resource>
+  <rewards>
+    <rewards>
+      <video>
+        <sha256sum/>
+        <guid/>
+      </video>
+    </rewards>
+    <rewards/>
+    <rewards/>
+    <rewards/>
+    <rewards/>
+    <rewards>
+      <video>
+        <sha256sum>cdf3b8bb9ff889e3480129e47da9c655a54df19a541b981e3ddc46b42a362ddf</sha256sum>
+        <guid>36b39926de90ac1ffae3e7d404e6d86d</guid>
+      </video>
+    </rewards>
+    <rewards>
+      <video>
+        <sha256sum>543a4ad9fef4c9e0004ec9482cb7225c2574b0f889291e8270b1c4d61dbc1ab8</sha256sum>
+        <guid>f13004eed4251c602bbe15737e8a1ecb</guid>
+      </video>
+    </rewards>
+    <rewards>
+      <video>
+        <sha256sum>1d720916a831c45454925dea707d477bdd2368bc48f3715bb5464c2707ba9859</sha256sum>
+        <guid>a3ac7ddabb263c2d00b73e8177d15c8d</guid>
+      </video>
+    </rewards>
+  </rewards>
+  <total_weight>{'weight__sum': 7}</total_weight>
+  <problems>
+    <problem probid="46" weight="3">
+      <responses>
+        <response answer="3" group="1">
+          <text>Question</text>
+        </response>
+      </responses>
+      <image>
+        <sha256sum/>
+        <guid>cf38ab46143c2a7febf0373cd0232980</guid>
+        <type/>
+      </image>
+    </problem>
+    <problem probid="47" weight="1">
+      <responses>
+        <response answer="3" group="1">
+          <text>Quetion</text>
+        </response>
+      </responses>
+      <image>
+        <sha256sum>1b0777ce5dc210cf8d48112143368d444541935447d88e9db2e386b9835acb0e</sha256sum>
+        <guid>cf38ab46143c2a7febf0373cd0232980</guid>
+        <type/>
+      </image>
+    </problem>
+    <problem probid="48" weight="1">
+      <responses>
+        <response answer="3" group="1">
+          <text>question</text>
+        </response>
+      </responses>
+      <image>
+        <sha256sum>1b0777ce5dc210cf8d48112143368d444541935447d88e9db2e386b9835acb0e</sha256sum>
+        <guid>cf38ab46143c2a7febf0373cd0232980</guid>
+        <type/>
+      </image>
+    </problem>
+    <problem probid="49" weight="2">
+      <responses>
+        <response answer="4" group="1">
+          <text>Duck</text>
+        </response>
+      </responses>
+      <image>
+        <sha256sum>17e824bd236845932dc5c45d46d020e98a5973befa07d38c6b8bfad294a8d680</sha256sum>
+        <guid>7295cbfa448f44850549f08fd746bf36</guid>
+        <type>.gif</type>
+      </image>
+    </problem>
+  </problems>
+  <responses>
+    <group id="1" name="Capital Letter">
+      <item id="1">
+        <text>A</text>
+      </item>
+      <item id="2">
+        <text>B</text>
+      </item>
+      <item id="3">
+        <text>C</text>
+      </item>
+      <item id="4">
+        <text>D</text>
+      </item>
+      <item id="5">
+        <text>E</text>
+      </item>
+      <item id="6">
+        <text>F</text>
+      </item>
+      <item id="7">
+        <text>G</text>
+      </item>
+      <item id="8">
+        <text>H</text>
+      </item>
+      <item id="9">
+        <text>I</text>
+      </item>
+      <item id="10">
+        <text>J</text>
+      </item>
+      <item id="11">
+        <text>K</text>
+      </item>
+      <item id="12">
+        <text>L</text>
+      </item>
+      <item id="13">
+        <text>M</text>
+      </item>
+      <item id="14">
+        <text>N</text>
+      </item>
+      <item id="15">
+        <text>O</text>
+      </item>
+      <item id="16">
+        <text>P</text>
+      </item>
+      <item id="17">
+        <text>Q</text>
+      </item>
+      <item id="18">
+        <text>R</text>
+      </item>
+      <item id="19">
+        <text>S</text>
+      </item>
+      <item id="20">
+        <text>T</text>
+      </item>
+      <item id="21">
+        <text>V</text>
+      </item>
+      <item id="22">
+        <text>U</text>
+      </item>
+      <item id="23">
+        <text>W</text>
+      </item>
+      <item id="24">
+        <text>X</text>
+      </item>
+      <item id="25">
+        <text>Y</text>
+      </item>
+      <item id="26">
+        <text>Z</text>
+      </item>
+    </group>
+    <group id="2" name="Animals"/>
+  </responses>
+</appname_resource>

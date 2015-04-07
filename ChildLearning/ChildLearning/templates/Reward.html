@@ -10,7 +10,17 @@
         <li><a href="/problem/">Create</a></li>
         <li><a href="/problemSelect/">Send</a></li>
         <li class="active"><a href="/rewards/">Reward</a></li>
-      </ul>
+        </ul> 
+      <ul class="nav navbar-nav navbar-right">
+            {% if user.is_authenticated %}
+            <li><p class="navbar-text navbar-right">{{ user.get_username }}</p></li>
+            <li><a href="/logout/" class="btn glyphicon glyphicon-log-out"> Logout</a></li>
+            {% else %}
+            <li><p class="navbar-text navbar-right"> welcome Guest</p></li>
+            <li><a href="/login/" class="btn glyphicon glyphicon-log-in navbar-right"> Login</a></li>
+            <li><a href="/register/" class="glyphicon glyphicon-registration-mark navbar-right"> Register</a></li>
+            {% endif %}
+            </ul>
     </div>
   </div>
 </nav>
@@ -26,7 +36,7 @@
     </thead>
     <tbody>
       <tr>
-        <td style="width:50%">{{ form.filename }}</td>
+        <td style="width:50%">{{ form.file }}</td>
         <td><input type="text" name="rewardname" id="rewardname" value=""></td>
       </tr>
     </tbody>

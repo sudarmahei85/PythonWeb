@@ -74,7 +74,7 @@ TEMPLATE_DIRS = (
 # FileUploads
 MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'uploads').replace('\\','/')
 MEDIA_URL = '/uploads/'
- 
+MEDIA_FILE_LINK='/DownloadLink/' 
 
 
 # Internationalization

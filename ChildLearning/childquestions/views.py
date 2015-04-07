@@ -1,33 +1,62 @@
 from django.shortcuts import render,redirect
-from childquestions.models import problemForm,Problem,Users,problemSelectForm,Respgrp,Respgrpanswer,Rewards,rewardsForm
+from childquestions.models import problemForm,Problem,problemSelectForm,Respgrp,Respgrpanswer,Rewards,rewardsForm,devicemapping
+from django.contrib.auth.models import User
+from django.contrib.auth import logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate, login
+from childquestions.forms import RegistrationForm
 from django.core import serializers
 from django.http import HttpResponse,HttpResponseRedirect
+import xml.etree.ElementTree as ET
+from django.db.models import Sum
+from childquestions.generatexml import prettify
+import os.path
+from ChildLearning.settings import MEDIA_ROOT,MEDIA_FILE_LINK
+  
 # Create your views here.
 def problems(request):
-    pf = problemForm()
-    request.session['user_id']= '1abc'
-    request.session['username']='Tester'
-    respgrpdropdown = Respgrp.objects.all()     
-    return render(request,'Problems.html',{'form':pf,'resp_lis':respgrpdropdown})
+    
+    if request.user.is_authenticated():
+        pf = problemForm()
+        respgrpdropdown = Respgrp.objects.all()     
+        return render(request,'Problems.html',{'form':pf,'resp_lis':respgrpdropdown})
+    else:
+        HttpResponseRedirect('/login')
+        
+def register(request):
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        print('register')
+        if form.is_valid():
+            new_user = form.save()
+            print('registered')
+            return HttpResponseRedirect("/")
+    else:
+        form = RegistrationForm()
+    return render(request, "Registration.html", {
+        'form': form,
+    })
+
 
 def problemSubmit(request):
-    if request.method == 'POST':
-        print('line1') 
-        user_p = Users()
-        user_p.users_id= request.session.get('user_id')
-        user_p.username=request.session.get('username')
-        prob = Problem.objects.create(Users=user_p)
-        prob.save()
-        pf = problemForm(request.POST,request.FILES,instance=prob)
-        if pf.is_valid():
-            pd = pf.cleaned_data
-            print(pd)
-            pf.save(commit=True)
-            return  redirect('/problem/')
-        else:
-            print('line3')  
-                                     
-    return  redirect('/sendProblem/')
+    if request.user.is_authenticated():
+        if request.method == 'POST':
+            print('line1') 
+            user_p = request.user
+            prob = Problem.objects.create(Users=user_p)
+            prob.save()
+            pf = problemForm(request.POST,request.FILES,instance=prob)
+            if pf.is_valid():
+                pd = pf.cleaned_data
+                print(pd)
+                pf.save(commit=True)
+                return  redirect('/problem/')
+            else:
+                print('line3')  
+                                         
+        return  redirect('/sendProblem/')
+    else:
+        HttpResponseRedirect('/login') 
 
 def all_json_answers(request, respgroup):
     current_respgrp = Respgrp.objects.get(respgrp_id=respgroup)
@@ -36,49 +65,145 @@ def all_json_answers(request, respgroup):
     return HttpResponse(json_models, content_type="application/json")
 
 def problemSelect(request):
-    print('line1;select') 
-    user_s = Users()
-    user_s.users_id= request.session.get('user_id')
-    user_s.username=request.session.get('username')
-    prob= Problem.objects.all().filter(Users=user_s)
-    for pr in prob:
-        print(pr.question)
-    return render(request,'sendProblem.html',{'form':prob})   
+    if request.user.is_authenticated():
+        print('line1;select') 
+        user_s =request.user
+        prob= Problem.objects.all().filter(Users=user_s)
+        
+        return render(request,'sendProblem.html',{'form':prob})   
+    else:
+        HttpResponseRedirect('/login') 
+
+              
+    
+def rewards(request):
+    if request.user.is_authenticated():
+        if request.method == 'POST':
+            print('line1') 
+            user_p = request.user
+            rew = Rewards.objects.create(Users=user_p)
+            rew.save()
+            rw = rewardsForm(request.POST,request.FILES,instance=rew)
+            if rw.is_valid():
+                pd = rw.cleaned_data
+                print('line2')        
+                print(pd)
+                rw.save(commit=True)
+                return  redirect('/rewards/')
+        else:
+            rf = rewardsForm()    
+           
+        return render(request,'Reward.html',{'form':rf})
+    else:
+        HttpResponseRedirect('/login')
+def homepage(request):
+    if request.user.is_authenticated(): 
+        print('home Valid')
+        return render(request,'Home.html')
+    else:
+        print('home else')
+        return render(request,"Login.html")  
+        
+def loginpage(request):
+    
+    if request.user.is_authenticated(): 
+        print('home Valid')
+        return render(request,'Home.html')
+    
+    form = AuthenticationForm(None,request.POST)
+    print('good')
+    if form.is_valid():
+        login(request, form.get_user())
+        print('Success')
+        return render(request,'Home.html')
+    else:
+        form = AuthenticationForm()   
+    return render(request,"Login.html", {'form':form,})      
+
+   
+def logoutpage(request):
+    logout(request)
+    return HttpResponseRedirect('/login') 
 
 def problemSend(request):
-    if request.method == 'POST':
-        print('line1') 
-        user_p = Users()
-        user_p.users_id= request.session.get('user_id')
-        user_p.username=request.session.get('username')
-        values = request.POST.getlist(u'problemId')
-        print(values)
-    prob= Problem.objects.filter(Users=user_p)
+    if request.user.is_authenticated():
+        if request.method == 'POST':
+            print('line1') 
+            user_p = request.user
+            values = request.POST.getlist(u'problemId')
+            print(values)
+            problemlist= Problem.objects.filter(problemId__in=values)
+            totalweight=Problem.objects.filter(problemId__in=values).aggregate(Sum('weight')).get('weight__sum')
+            rewards=Rewards.objects.filter(Users=user_p)
+            respgrp=Respgrp.objects.all()
+            prob= Problem.objects.all().filter(Users=user_p)
+            #<?xml version="1.0" encoding="UTF-8"?>
+            pragmatic = ET.Element('appname_resource')
             
-    return render(request,'sendProblem.html',{'form':prob}) 
-  
-def rewards(request):
-    
-    if request.method == 'POST':
-        print('line1') 
-        user_p = Users()
-        user_p.users_id= request.session.get('user_id')
-        user_p.username=request.session.get('username')
-        rew = Rewards.objects.create(Users=user_p)
-        rew.save()
-        rw = rewardsForm(request.POST,request.FILES,instance=rew)
-        if rw.is_valid():
-            pd = rw.cleaned_data
-            print('line2')        
-            print(pd)
-            rw.save(commit=True)
-            return  redirect('/rewards/')
+            # <rewards/>
+            xmlrewards = ET.SubElement( pragmatic, 'rewards' )
+            for re in rewards:
+                xmlreward=ET.SubElement(xmlrewards,'reward')
+                if re.filetype=='Video':
+                    video = ET.SubElement(xmlreward, 'video')
+                    sha256sum = ET.SubElement(video, 'sha256sum')
+                    sha256sum.text=re.shasum
+                    guid = ET.SubElement(video, 'guid')
+                    guid.text=re.guidvalue
+                elif re.filetype =='Audio': 
+                    audio = ET.SubElement(xmlreward, 'audio')
+                    sha256sum = ET.SubElement(audio, 'sha256sum')
+                    sha256sum.text=re.shasum
+                    guid = ET.SubElement(audio, 'guid')
+                    guid.text=re.guidvalue 
+                    retype = ET.SubElement(audio, 'type')
+                    retype.text='vorbis'
+          
+            total_weight = ET.SubElement( pragmatic, 'total_weight' )
+            total_weight.text=str(totalweight)   
+            # <problems/>
+            problems = ET.SubElement( pragmatic, 'problems' )
+            for pr in problemlist:
+                xmlproblem = ET.SubElement( problems, 'problem',{'probid':str(pr.problemId),
+                                          'weight':str(pr.weight),})
+                                          
+                responses = ET.SubElement( xmlproblem, 'responses' )                          
+                response = ET.SubElement( responses, 'response',{'group':str(pr.respgrp.respgrp_id),
+                                          'answer':str(pr.answer.respgrpanswer_id),})  
+                text = ET.SubElement( xmlproblem, 'text' )
+                text.text=str(pr.question)                           
+                xmlimage = ET.SubElement(xmlproblem, 'image')
+                sha256sum = ET.SubElement(xmlimage, 'sha256sum')
+                sha256sum.text=pr.shasum
+                guid = ET.SubElement(xmlimage, 'guid')
+                guid.text=pr.guidvalue
+                retype = ET.SubElement(xmlimage, 'type')
+                retype.text=pr.filetype
+                  
+            xmlresponses = ET.SubElement( pragmatic, 'responses' )        
+            for rs in respgrp:
+                group = ET.SubElement( xmlresponses, 'group',{'name':rs.respgrpname,
+                                          'id':str(rs.respgrp_id),} )
+                rsanswer=Respgrpanswer.objects.filter(Respgrp=rs)
+                for ans in rsanswer:
+                    item = ET.SubElement( group, 'item',{'id':str(ans.respgrpanswer_id),} )
+                    text = ET.SubElement( item, 'text')
+                    text.text=ans.respgrpanswer
+           
+            
+            #data=prettify(pragmatic)
+           
+            filenames=devicemapping.objects.filter(Users=user_p)
+            for filekey in filenames:
+                filename=MEDIA_FILE_LINK+filekey.devicekey+'.xml'
+                print(filename)
+                data=prettify(pragmatic)
+                if not os.path.exists(os.path.dirname(filename)):
+                    os.makedirs(os.path.dirname(filename))
+                with open(filename, "wb") as f:
+                    f.write(bytes(data, 'UTF-8'))
+            
+            
+        return render(request,'sendProblem.html',{'form':prob}) 
     else:
-        rf = rewardsForm()    
-       
-    return render(request,'Reward.html',{'form':rf})
-
-def homepage(request):
-     
-    return render(request,'Home.html')
-   
+        HttpResponseRedirect('/login')
