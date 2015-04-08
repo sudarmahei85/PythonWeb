@@ -2,7 +2,7 @@
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Flash Trainer</a>
+      <a class="navbar-brand" href="#">AuPAIR</a>
     </div>
     <div>
       <ul class="nav navbar-nav">
@@ -27,6 +27,18 @@
 <div class="row">
 <form action="/sendProblem/" method="post">
 {% csrf_token %}
+{% if success %}
+<div class="col-xs-12 col-md-8 alert alert-success">
+    <a href="#" class="close" data-dismiss="alert">&times;</a>
+   <strong>Success!</strong> {{success}}
+</div>
+{% endif %}
+{% if error %}
+<div class="col-xs-12 col-md-8 alert alert-danger">
+    <a href="#" class="close" data-dismiss="alert">&times;</a>
+  <strong>Error!</strong>  {{error}}
+</div>
+{% endif %}
 <table class="table table-striped">
     <thead>
       <tr>
@@ -44,7 +56,11 @@
       <td><textarea rows="2" cols="30" disabled="true">{{field.question}}</textarea></td>
       <td><input type="textbox"  disabled="true" value="{{field.answer.respgrpanswer}}" name="answer"></td>
       <td><input type="textbox"  disabled="true" value="{{field.weight}}" name="weight"></td>
-      <td><div class="media imagesize col-md-4"> <img  class="media-object imagesize" src="{{field.file.url}}"></div></td>
+      <td><div class="media imagesize col-md-4"> 
+      {%if field.file %}
+      <img  class="media-object imagesize" src="{{field.file.url}}">
+      {% endif %}  
+      </div></td>
      </tr>
       {% endfor %}
     </tbody>

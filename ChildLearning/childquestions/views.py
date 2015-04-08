@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from django.db.models import Sum
 from childquestions.generatexml import prettify
 import os.path
+import codecs
 from ChildLearning.settings import MEDIA_ROOT,MEDIA_FILE_LINK
   
 # Create your views here.
@@ -21,7 +22,7 @@ def problems(request):
         respgrpdropdown = Respgrp.objects.all()     
         return render(request,'Problems.html',{'form':pf,'resp_lis':respgrpdropdown})
     else:
-        HttpResponseRedirect('/login')
+        return HttpResponseRedirect('/login')
         
 def register(request):
     if request.method == 'POST':
@@ -40,23 +41,32 @@ def register(request):
 
 def problemSubmit(request):
     if request.user.is_authenticated():
-        if request.method == 'POST':
-            print('line1') 
-            user_p = request.user
-            prob = Problem.objects.create(Users=user_p)
-            prob.save()
-            pf = problemForm(request.POST,request.FILES,instance=prob)
-            if pf.is_valid():
-                pd = pf.cleaned_data
-                print(pd)
-                pf.save(commit=True)
-                return  redirect('/problem/')
+        rpf = problemForm() 
+        respgrpdropdown = Respgrp.objects.all()    
+        try:
+            if request.method == 'POST':
+                print('line1') 
+                user_p = request.user
+                prob = Problem.objects.create(Users=user_p)
+                prob.save()
+                pf = problemForm(request.POST,request.FILES,instance=prob)
+                if pf.is_valid():
+                    pd = pf.cleaned_data
+                    print('saving problem')
+                    pf.save(commit=True)
+                    return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'success':'Saved successfully'})
+                else:
+                    print('line3')  
+                    error='Error occured while saving. Please try again later'  
+                    return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'error':error})                         
+            
             else:
-                print('line3')  
-                                         
-        return  redirect('/sendProblem/')
+                return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown})
+        except:
+            error='Error occured while saving. Please try again later'  
+            return render(request,'Problems.html',{'form':rpf,'error':error})
     else:
-        HttpResponseRedirect('/login') 
+        return  HttpResponseRedirect('/login') 
 
 def all_json_answers(request, respgroup):
     current_respgrp = Respgrp.objects.get(respgrp_id=respgroup)
@@ -72,30 +82,36 @@ def problemSelect(request):
         
         return render(request,'sendProblem.html',{'form':prob})   
     else:
-        HttpResponseRedirect('/login') 
+        return  HttpResponseRedirect('/login') 
 
               
     
 def rewards(request):
     if request.user.is_authenticated():
-        if request.method == 'POST':
-            print('line1') 
-            user_p = request.user
-            rew = Rewards.objects.create(Users=user_p)
-            rew.save()
-            rw = rewardsForm(request.POST,request.FILES,instance=rew)
-            if rw.is_valid():
-                pd = rw.cleaned_data
-                print('line2')        
-                print(pd)
-                rw.save(commit=True)
-                return  redirect('/rewards/')
-        else:
-            rf = rewardsForm()    
-           
-        return render(request,'Reward.html',{'form':rf})
+        rf = rewardsForm()
+        rrf=rewardsForm()
+        user_p = request.user
+        try:
+            if request.method == 'POST':
+                print('line1') 
+                rew = Rewards.objects.create(Users=user_p)
+                rew.save()
+                rw = rewardsForm(request.POST,request.FILES,instance=rew)
+                if rw.is_valid():
+                    pd = rw.cleaned_data
+                    print('saving')        
+                    rw.save(commit=True)
+                    rf = Rewards.objects.filter(Users=user_p)
+                    return render(request,'Reward.html',{'form':rrf,'reward':rf,'success':'Saved successfully'})
+            else:
+                rf = Rewards.objects.filter(Users=user_p)
+                return render(request,'Reward.html',{'form':rrf,'reward':rf})
+        except:
+            rf = Rewards.objects.filter(Users=user_p)    
+            error='Error occured while saving. Please try again later'  
+            return render(request,'Reward.html',{'form':rrf,'reward':rf,'error':error})
     else:
-        HttpResponseRedirect('/login')
+        return  HttpResponseRedirect('/login')
 def homepage(request):
     if request.user.is_authenticated(): 
         print('home Valid')
@@ -127,83 +143,88 @@ def logoutpage(request):
 
 def problemSend(request):
     if request.user.is_authenticated():
-        if request.method == 'POST':
-            print('line1') 
-            user_p = request.user
-            values = request.POST.getlist(u'problemId')
-            print(values)
-            problemlist= Problem.objects.filter(problemId__in=values)
-            totalweight=Problem.objects.filter(problemId__in=values).aggregate(Sum('weight')).get('weight__sum')
-            rewards=Rewards.objects.filter(Users=user_p)
-            respgrp=Respgrp.objects.all()
-            prob= Problem.objects.all().filter(Users=user_p)
-            #<?xml version="1.0" encoding="UTF-8"?>
-            pragmatic = ET.Element('appname_resource')
-            
-            # <rewards/>
-            xmlrewards = ET.SubElement( pragmatic, 'rewards' )
-            for re in rewards:
-                xmlreward=ET.SubElement(xmlrewards,'reward')
-                if re.filetype=='Video':
-                    video = ET.SubElement(xmlreward, 'video')
-                    sha256sum = ET.SubElement(video, 'sha256sum')
-                    sha256sum.text=re.shasum
-                    guid = ET.SubElement(video, 'guid')
-                    guid.text=re.guidvalue
-                elif re.filetype =='Audio': 
-                    audio = ET.SubElement(xmlreward, 'audio')
-                    sha256sum = ET.SubElement(audio, 'sha256sum')
-                    sha256sum.text=re.shasum
-                    guid = ET.SubElement(audio, 'guid')
-                    guid.text=re.guidvalue 
-                    retype = ET.SubElement(audio, 'type')
-                    retype.text='vorbis'
-          
-            total_weight = ET.SubElement( pragmatic, 'total_weight' )
-            total_weight.text=str(totalweight)   
-            # <problems/>
-            problems = ET.SubElement( pragmatic, 'problems' )
-            for pr in problemlist:
-                xmlproblem = ET.SubElement( problems, 'problem',{'probid':str(pr.problemId),
-                                          'weight':str(pr.weight),})
-                                          
-                responses = ET.SubElement( xmlproblem, 'responses' )                          
-                response = ET.SubElement( responses, 'response',{'group':str(pr.respgrp.respgrp_id),
-                                          'answer':str(pr.answer.respgrpanswer_id),})  
-                text = ET.SubElement( xmlproblem, 'text' )
-                text.text=str(pr.question)                           
-                xmlimage = ET.SubElement(xmlproblem, 'image')
-                sha256sum = ET.SubElement(xmlimage, 'sha256sum')
-                sha256sum.text=pr.shasum
-                guid = ET.SubElement(xmlimage, 'guid')
-                guid.text=pr.guidvalue
-                retype = ET.SubElement(xmlimage, 'type')
-                retype.text=pr.filetype
-                  
-            xmlresponses = ET.SubElement( pragmatic, 'responses' )        
-            for rs in respgrp:
-                group = ET.SubElement( xmlresponses, 'group',{'name':rs.respgrpname,
-                                          'id':str(rs.respgrp_id),} )
-                rsanswer=Respgrpanswer.objects.filter(Respgrp=rs)
-                for ans in rsanswer:
-                    item = ET.SubElement( group, 'item',{'id':str(ans.respgrpanswer_id),} )
-                    text = ET.SubElement( item, 'text')
-                    text.text=ans.respgrpanswer
-           
-            
-            #data=prettify(pragmatic)
-           
-            filenames=devicemapping.objects.filter(Users=user_p)
-            for filekey in filenames:
-                filename=MEDIA_FILE_LINK+filekey.devicekey+'.xml'
-                print(filename)
-                data=prettify(pragmatic)
-                if not os.path.exists(os.path.dirname(filename)):
-                    os.makedirs(os.path.dirname(filename))
-                with open(filename, "wb") as f:
-                    f.write(bytes(data, 'UTF-8'))
-            
-            
-        return render(request,'sendProblem.html',{'form':prob}) 
+        try:
+            if request.method == 'POST':
+                print('line1') 
+                user_p = request.user
+                values = request.POST.getlist(u'problemId')
+                print(values)
+                problemlist= Problem.objects.filter(problemId__in=values)
+                totalweight=Problem.objects.filter(problemId__in=values).aggregate(Sum('weight')).get('weight__sum')
+                rewards=Rewards.objects.filter(Users=user_p)
+                respgrp=Respgrp.objects.all()
+                prob= Problem.objects.all().filter(Users=user_p)
+                #<?xml version="1.0" encoding="UTF-8"?>
+                pragmatic = ET.Element('appname_resource')
+                
+                # <rewards/>
+                xmlrewards = ET.SubElement( pragmatic, 'rewards' )
+                for re in rewards:
+                    xmlreward=ET.SubElement(xmlrewards,'reward')
+                    if re.filetype=='Video':
+                        video = ET.SubElement(xmlreward, 'video')
+                        sha256sum = ET.SubElement(video, 'sha256sum')
+                        sha256sum.text=re.shasum
+                        guid = ET.SubElement(video, 'guid')
+                        guid.text=re.guidvalue
+                    elif re.filetype =='Audio': 
+                        audio = ET.SubElement(xmlreward, 'audio')
+                        sha256sum = ET.SubElement(audio, 'sha256sum')
+                        sha256sum.text=re.shasum
+                        guid = ET.SubElement(audio, 'guid')
+                        guid.text=re.guidvalue 
+                        retype = ET.SubElement(audio, 'type')
+                        retype.text='vorbis'
+              
+                total_weight = ET.SubElement( pragmatic, 'total_weight' )
+                total_weight.text=str(totalweight)   
+                # <problems/>
+                problems = ET.SubElement( pragmatic, 'problems' )
+                for pr in problemlist:
+                    xmlproblem = ET.SubElement( problems, 'problem',{'probid':str(pr.problemId),
+                                              'weight':str(pr.weight),})
+                                              
+                    responses = ET.SubElement( xmlproblem, 'responses' )                          
+                    response = ET.SubElement( responses, 'response',{'group':str(pr.respgrp.respgrp_id),
+                                              'answer':str(pr.answer.respgrpanswer_id),})  
+                    text = ET.SubElement( xmlproblem, 'text' )
+                    text.text=str(pr.question)                           
+                    xmlimage = ET.SubElement(xmlproblem, 'image')
+                    sha256sum = ET.SubElement(xmlimage, 'sha256sum')
+                    sha256sum.text=pr.shasum
+                    guid = ET.SubElement(xmlimage, 'guid')
+                    guid.text=pr.guidvalue
+                    retype = ET.SubElement(xmlimage, 'type')
+                    retype.text=pr.filetype
+                      
+                xmlresponses = ET.SubElement( pragmatic, 'responses' )        
+                for rs in respgrp:
+                    group = ET.SubElement( xmlresponses, 'group',{'name':rs.respgrpname,
+                                              'id':str(rs.respgrp_id),} )
+                    rsanswer=Respgrpanswer.objects.filter(Respgrp=rs)
+                    for ans in rsanswer:
+                        item = ET.SubElement( group, 'item',{'id':str(ans.respgrpanswer_id),} )
+                        text = ET.SubElement( item, 'text')
+                        text.text=ans.respgrpanswer
+               
+                
+                #data=prettify(pragmatic)
+               
+                filenames=devicemapping.objects.filter(Users=user_p)
+                for filekey in filenames:
+                    filename=MEDIA_FILE_LINK+filekey.devicekey+'.xml'
+                    print(filename)
+                    data=prettify(pragmatic)
+                    if not os.path.exists(os.path.dirname(filename)):
+                        os.makedirs(os.path.dirname(filename))
+                    with codecs.open(filename, "wb",encoding='utf8') as f:
+                        f.write(data)
+                
+                
+            return render(request,'sendProblem.html',{'form':prob,'success':'Successfully Sent'})
+        except:
+            prob= Problem.objects.all().filter(Users=request.user)   
+            error='Error occured while Sending. Please try again later'  
+            return render(request,'sendProblem.html',{'form':prob,'error':error})
     else:
-        HttpResponseRedirect('/login')
+        return  HttpResponseRedirect('/login')

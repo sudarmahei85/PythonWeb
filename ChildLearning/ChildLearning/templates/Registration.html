@@ -2,7 +2,7 @@
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand" href="#">Flash Trainer</a>
+      <a class="navbar-brand" href="#">AuPAIR</a>
     </div>
     <div>
       <ul class="nav navbar-nav">
@@ -37,8 +37,11 @@
                         <div class="panel panel-default">
                             <div class="panel-heading">
                         <strong>   Register Yourself </strong>  
-                           {% for field in form %}
+                             {% for field in form %}
+                             <div class="alert alert-error">
+                            <strong>Error!</strong> 
                              {{field.errors}} 
+                             </div>
                             {% endfor %}
                             </div>
                             <div class="panel-body">
