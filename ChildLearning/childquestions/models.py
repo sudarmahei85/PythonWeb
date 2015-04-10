@@ -5,6 +5,7 @@ from django import forms
 import hashlib
 import os.path
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError
 
 # class Users(models.Model):
 #     username = models.CharField(max_length=20)
@@ -27,12 +28,11 @@ def simple_upload_to(field_name, path='files'):
         instance.guidvalue=name
         dot_pos = filename.rfind('.')
         ext = filename[dot_pos:][:10].lower() if dot_pos > -1 else '.unknown'
-        if ext=='.mp4':
+        if ext=='.mp4' or ext=='.avi' :
             instance.filetype='Video'
         elif  ext=='.mp3':
             instance.filetype='Audio'
-        else:
-            instance.filetype=ext
+        
         name += ext
         return os.path.join(name)
     return upload_to
@@ -47,6 +47,19 @@ def sha_for_file(chunks):
     for data in chunks:
         sha.update(data)
     return sha.hexdigest()
+
+def validate_file_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = ['.jpg','.jpeg']
+    if not ext in valid_extensions:
+        raise ValidationError(u'File not supported. Please upload only jpg or jpeg')
+    
+def validate_file_video_extension(value):
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = ['.mp4','.avi','.mp3']
+    if not ext in valid_extensions:
+        raise ValidationError(u'File not supported.Please upload only .mp4,.avi or .mp3')
+    
 class  Respgrp(models.Model):
     respgrp_id =models.AutoField(primary_key=True)
     respgrpname=models.TextField(max_length=45)
@@ -84,7 +97,7 @@ class Problem(models.Model):
     answer =  models.ForeignKey(Respgrpanswer,db_column='respgrpanswer_id')
     weight= models.IntegerField(max_length=2)
     respgrp =models.ForeignKey(Respgrp)
-    file = models.FileField(upload_to=simple_upload_to('file'),storage=MediaFileSystemStorage()) 
+    file = models.FileField(upload_to=simple_upload_to('file'),validators=[validate_file_extension],storage=MediaFileSystemStorage()) 
     shasum =models.TextField(max_length=200)
     guidvalue= models.TextField(max_length=200)
     filetype=models.TextField(max_length=4)
@@ -109,7 +122,7 @@ class Rewards(models.Model):
     rewards_id=models.AutoField(primary_key=True)
     Users = models.ForeignKey(User,db_column='id')
     rewardname = models.TextField(max_length=200)
-    file = models.FileField(upload_to=simple_upload_to('file'),storage=MediaFileSystemStorage()) 
+    file = models.FileField(upload_to=simple_upload_to('file'),validators=[validate_file_video_extension],storage=MediaFileSystemStorage()) 
     shasum =models.TextField(max_length=200)
     guidvalue= models.TextField(max_length=200)
     filetype=models.TextField(max_length=4)

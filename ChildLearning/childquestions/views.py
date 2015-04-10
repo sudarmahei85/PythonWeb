@@ -12,6 +12,7 @@ from django.db.models import Sum
 from childquestions.generatexml import prettify
 import os.path
 import codecs
+from django.core.exceptions import ValidationError
 from ChildLearning.settings import MEDIA_ROOT,MEDIA_FILE_LINK
   
 # Create your views here.
@@ -55,16 +56,14 @@ def problemSubmit(request):
                     print('saving problem')
                     pf.save(commit=True)
                     return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'success':'Saved successfully'})
-                else:
-                    print('line3')  
-                    error='Error occured while saving. Please try again later'  
-                    return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'error':error})                         
-            
+                prob.delete()
+                return render(request,'Problems.html',{'form':pf,'resp_lis':respgrpdropdown,'error':pf._errors})
+                    
             else:
                 return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown})
         except:
             error='Error occured while saving. Please try again later'  
-            return render(request,'Problems.html',{'form':rpf,'error':error})
+            return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'error':error})
     else:
         return  HttpResponseRedirect('/login') 
 
@@ -95,7 +94,6 @@ def rewards(request):
             if request.method == 'POST':
                 print('line1') 
                 rew = Rewards.objects.create(Users=user_p)
-                rew.save()
                 rw = rewardsForm(request.POST,request.FILES,instance=rew)
                 if rw.is_valid():
                     pd = rw.cleaned_data
@@ -103,12 +101,17 @@ def rewards(request):
                     rw.save(commit=True)
                     rf = Rewards.objects.filter(Users=user_p)
                     return render(request,'Reward.html',{'form':rrf,'reward':rf,'success':'Saved successfully'})
+                rew.delete()
+                rf = Rewards.objects.filter(Users=user_p)
+                return render(request,'Reward.html',{'form':rrf,'reward':rf,'error':rw._errors})
             else:
                 rf = Rewards.objects.filter(Users=user_p)
                 return render(request,'Reward.html',{'form':rrf,'reward':rf})
+            
+            
         except:
-            rf = Rewards.objects.filter(Users=user_p)    
-            error='Error occured while saving. Please try again later'  
+            rf = Rewards.objects.filter(Users=user_p)
+            error='Error occured while saving. Please try again later'   
             return render(request,'Reward.html',{'form':rrf,'reward':rf,'error':error})
     else:
         return  HttpResponseRedirect('/login')
@@ -170,7 +173,7 @@ def problemSend(request):
                     elif re.filetype =='Audio': 
                         audio = ET.SubElement(xmlreward, 'audio')
                         sha256sum = ET.SubElement(audio, 'sha256sum')
-                        sha256sum.text=re.shasum
+                        sha256sum.text=re.sasum
                         guid = ET.SubElement(audio, 'guid')
                         guid.text=re.guidvalue 
                         retype = ET.SubElement(audio, 'type')
