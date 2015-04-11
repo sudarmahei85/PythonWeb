@@ -10,6 +10,7 @@
         <li class="active"><a href="/problem/">Create</a></li>
         <li><a href="/problemSelect/">Send</a></li>
         <li><a href="/rewards/">Reward</a></li>
+        <li ><a href="/devices/">Device</a></li>
          </ul> 
       <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
@@ -27,10 +28,10 @@
 <script>
      $(document).ready(
                       function() {
-                          $("select#respgrp").change(function() {
+                          $("select#AnswerGroup").change(function() {
                                if ($(this).val() == '') {
-                                  $("select#answer").html("<option>Select a Answer</option>");
-                                  $("select#answer").attr('disabled', true);
+                                  $("select#Answer").html("<option>Select a Answer</option>");
+                                  $("select#Answer").attr('disabled', true);
                               }
                               else {
                                   var url = "/respgroup/" + $(this).val()+"/";
@@ -38,22 +39,24 @@
                                   $.getJSON(url, function(models) {
                                       var options = '<option value="">Select a Answer</option>';
                                       for (var i = 0; i < models.length; i++) {
-                                         options += '<option value="' + models[i].pk + '">' + models[i].fields['respgrpanswer'] + '</option>';
+                                         options += '<option value="' + models[i].pk + '">' + models[i].fields['Answer'] + '</option>';
                                       }
-                                      $("select#answer").html(options);
-                                      $("select#answer").attr('disabled', false);
+                                      $("select#Answer").html(options);
+                                      $("select#Answer").attr('disabled', false);
                                   });
                               }
                           });
 
 
-                          $("select#answer").change(function(vent) {
+                          $("select#Answer").change(function(vent) {
                               if ($(this).val() == -1) {
                                   return;
                               }
                               
                           });
                       });
+                      
+                  
      
 
 </script>
@@ -84,18 +87,18 @@
     </thead>
     <tbody>
       <tr>
-        <td>{{ form.file }}(only jpg or jpeg)</td>
-        <td><input type="text" name="question" id="question" value=""></td>
+        <td>{{ form.ImageFile }}(only jpg or jpeg)</td>
+        <td><input type="text" name="Question" id="Question" value="" maxlength="200"></td>
         <td>
-        <select name="respgrp" id="respgrp">
+        <select name="AnswerGroup" id="AnswerGroup">
          <option value="">Select a question Group</option>
         {% for resp in resp_lis %}
-             <option value="{{ resp.respgrp_id}}">{{ resp.respgrpname}}</option>
+             <option value="{{ resp.respgrp_id}}">{{ resp.AnswerGroup}}</option>
          {% endfor %}
         </select>
         </td>
         <td>
-        <select name="answer" id="answer" disabled="true">
+        <select name="Answer" id="Answer" disabled="true">
          <option>Select a model</option>
         </select>   
         </td>
@@ -118,6 +121,47 @@
      </div>
    </div>  
  </div>
+ </form>
+ <br>
+ <div class="row">
+     <div class="col-md-4">
+     <p><h4>Select the problems you want to Delete</h4></p>
+     </div>
+ </div>    
+ <form action="/Problemdel/" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+ <div class="row">
+ <table class="table table-striped table-bordered">
+    <thead>
+      <tr>
+        <th>Select</th>
+        <th>Question</th>
+        <th>Answer</th>
+        <th>Weight</th>
+        <th>File</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for field in problist %}
+      <tr>
+      <td><input type="checkbox" value="{{field.problemId}}" name="problemId"></td>
+      <td><textarea rows="2" cols="30" disabled="true">{{field.Question}}</textarea></td>
+      <td><input type="textbox"  disabled="true" value="{{field.Answer.Answer}}" name="answer"></td>
+      <td><input type="textbox"  disabled="true" value="{{field.weight}}" name="weight"></td>
+      <td><div class="media imagesize col-md-4"> 
+      {%if field.ImageFile %}
+      <img  class="media-object imagesize" src="{{field.ImageFile.url}}">
+      {% endif %}  
+      </div></td>
+     </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="row">
+     <div class="col-md-4">
+     <input type="submit" class="btn btn-info" name="submit" value="Delete">
+     </div>
+   </div>  
  </form>
  
 </div>

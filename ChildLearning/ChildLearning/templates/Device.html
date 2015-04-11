@@ -9,8 +9,8 @@
         <li><a href="/">Home</a></li>
         <li><a href="/problem/">Create</a></li>
         <li><a href="/problemSelect/">Send</a></li>
-        <li class="active"><a href="/rewards/">Reward</a></li>
-        <li ><a href="/devices/">Device</a></li>
+        <li><a href="/rewards/">Reward</a></li>
+        <li class="active"><a href="/devices/">Device</a></li>
         </ul> 
       <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
@@ -26,7 +26,7 @@
   </div>
 </nav>
 <div class="row">
-<form action="/rewards/" method="post" enctype="multipart/form-data">
+<form action="/devices/" method="post" enctype="multipart/form-data">
 {% csrf_token %}
 {% if success %}
 <div class="col-xs-10 col-md-4 alert alert-success">
@@ -43,14 +43,14 @@
 <table class="table table-striped">
     <thead>
       <tr>
-        <th>Reward File</th>
-        <th>Reward Name</th>
+        <th>Device Key</th>
+        <th>Device Name</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td style="width:30%">{{ form.RewardFile }} (only .mp4,.avi or .mp3)</td>
-        <td><input type="text" name="RewardName" id="RewardName" value="" maxlength="60"></td>
+        <td><input type="text" name="DeviceKey" id="DeviceKey" value=""></td>
+        <td><input type="text" name="DeviceName" id="DeviceName" value="" maxlength="45"></td>
       </tr>
     </tbody>
   </table>
@@ -65,24 +65,27 @@
   <br>
   <div class="row">
      <div class="col-md-4">
-     <p><h4>Select the rewards you want to Delete</h4></p>
+     <p><h4>Select the devices you want to Delete</h4></p>
      </div>
- </div>    
-  <form action="/rewardsdel/" method="post" enctype="multipart/form-data">
+ </div>
+  <form action="/devicesdel/" method="post" enctype="multipart/form-data">
   {% csrf_token %}
+  <br>
  <div class="row">
  <table class="table table-striped table-bordered" style="width:100px">
     <thead>
       <tr>
         <th>select</th>
-        <th>Rewards</th>
+        <th>Device Key</th>
+        <th>Device Name</th>
       </tr>
     </thead>
     <tbody>
-    {% for field in reward %}
+    {% for field in devices %}
       <tr>
-        <td><input type="checkbox" value="{{field.rewards_id}}" name="rewards_id"></td>
-        <td class="col-md-2"><input type="textbox"  disabled="true" value="{{field.RewardName}}" name="RewardName"></td>
+        <td><input type="checkbox" value="{{field.deviceid}}" name="deviceid"></td>
+        <td><input type="textbox" disabled="true" value="{{field.DeviceKey}}" name="DeviceKey"></td>
+        <td class="col-md-2"><input type="textbox"  disabled="true" value="{{field.DeviceName}}" name="DeviceName"></td>
       </tr>
       {% endfor %}
     </tbody>

@@ -179,3 +179,5 @@ CREATE TABLE `users` (
   PRIMARY KEY (`users_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE `childlearn`.`device_mapping` 
+ADD COLUMN `devicename` VARCHAR(45) NULL AFTER `deviceid`;

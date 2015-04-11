@@ -62,7 +62,7 @@ def validate_file_video_extension(value):
     
 class  Respgrp(models.Model):
     respgrp_id =models.AutoField(primary_key=True)
-    respgrpname=models.TextField(max_length=45)
+    AnswerGroup=models.TextField(max_length=45,db_column='respgrpname')
     class Meta:
         db_table ='respgrp'
     def __unicode__(self):
@@ -71,7 +71,7 @@ class  Respgrp(models.Model):
 class  Respgrpanswer(models.Model):
     respgrpanswer_id=models.AutoField(primary_key=True)
     Respgrp =models.ForeignKey(Respgrp)
-    respgrpanswer=models.TextField(max_length=45) 
+    Answer=models.TextField(max_length=45,db_column='respgrpanswer') 
        
     class Meta:
         db_table ='respgrpanswer' 
@@ -93,11 +93,11 @@ class MediaFileSystemStorage(FileSystemStorage):
 class Problem(models.Model):
     problemId=models.AutoField(primary_key=True)
     Users = models.ForeignKey(User,db_column='id')
-    question = models.TextField(max_length=200)
-    answer =  models.ForeignKey(Respgrpanswer,db_column='respgrpanswer_id')
+    Question = models.TextField(max_length=200,db_column='question')
+    Answer =  models.ForeignKey(Respgrpanswer,db_column='respgrpanswer_id')
     weight= models.IntegerField(max_length=2)
-    respgrp =models.ForeignKey(Respgrp)
-    file = models.FileField(upload_to=simple_upload_to('file'),validators=[validate_file_extension],storage=MediaFileSystemStorage()) 
+    AnswerGroup =models.ForeignKey(Respgrp,db_column='respgrp_id')
+    ImageFile = models.FileField(db_column='file',upload_to=simple_upload_to('ImageFile'),validators=[validate_file_extension],storage=MediaFileSystemStorage()) 
     shasum =models.TextField(max_length=200)
     guidvalue= models.TextField(max_length=200)
     filetype=models.TextField(max_length=4)
@@ -108,24 +108,15 @@ class Problem(models.Model):
     def __unicode__(self):
         return self.problemId
     
-class devicemapping(models.Model):  
-    Users = models.ForeignKey(User,db_column='id')
-    deviceid= models.AutoField(primary_key=True)
-    devicekey=models.TextField(max_length=200)
-    class Meta:
-        db_table ='device_mapping'
-         
-    def __unicode__(self):
-        return self.deviceid
-    
+
 class Rewards(models.Model):
     rewards_id=models.AutoField(primary_key=True)
     Users = models.ForeignKey(User,db_column='id')
-    rewardname = models.TextField(max_length=200)
-    file = models.FileField(upload_to=simple_upload_to('file'),validators=[validate_file_video_extension],storage=MediaFileSystemStorage()) 
+    RewardName = models.TextField(max_length=60,db_column='rewardname')
+    RewardFile = models.FileField(db_column='file',upload_to=simple_upload_to('RewardFile'),validators=[validate_file_video_extension],storage=MediaFileSystemStorage()) 
     shasum =models.TextField(max_length=200)
     guidvalue= models.TextField(max_length=200)
-    filetype=models.TextField(max_length=4)
+    filetype=models.TextField(max_length=6)
     
     class Meta:
         db_table ='rewards'
@@ -133,27 +124,42 @@ class Rewards(models.Model):
     def __unicode__(self):
         return self.rewards_id 
     
-    
+class Devices(models.Model):
+    deviceid=models.AutoField(primary_key=True)
+    Users = models.ForeignKey(User,db_column='id')
+    DeviceKey = models.TextField(max_length=200,db_column='devicekey')
+    DeviceName =models.TextField(max_length=45,db_column='devicename')
+       
+    class Meta:
+        db_table ='device_mapping'
+         
+    def __unicode__(self):
+        return self.deviceid  
+       
 class problemForm(ModelForm):
     class Meta:
         model = Problem
         exclude=['Users']
-        fields = ['file','question','respgrp','answer','weight'] 
+        fields = ['ImageFile','Question','AnswerGroup','Answer','weight'] 
         
 class rewardsForm(ModelForm):
     class Meta:
         model = Rewards
         exclude=['Users']
-        fields = ['rewardname','file']         
+        fields = ['RewardName','RewardFile']         
   
 class problemSelectForm(ModelForm):
     
     class Meta:
         model = Problem
         exclude=['users']
-        fields = ['problemId','file','question','answer','weight']
+        fields = ['problemId','ImageFile','Question','Answer','weight']
         
-     
+class devicesForm(ModelForm):
+    class Meta:
+        model = Devices
+        exclude=['Users']
+        fields = ['DeviceKey','DeviceName','Users']          
            
        
         

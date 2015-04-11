@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect
-from childquestions.models import problemForm,Problem,problemSelectForm,Respgrp,Respgrpanswer,Rewards,rewardsForm,devicemapping
-from django.contrib.auth.models import User
+from childquestions.models import problemForm,Problem,problemSelectForm,Respgrp,Respgrpanswer,Rewards,rewardsForm,Devices,devicesForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth import logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login
@@ -43,27 +43,29 @@ def register(request):
 def problemSubmit(request):
     if request.user.is_authenticated():
         rpf = problemForm() 
-        respgrpdropdown = Respgrp.objects.all()    
+        respgrpdropdown = Respgrp.objects.all() 
+        user_p = request.user
+        pfl = Problem.objects.filter(Users=user_p)   
         try:
             if request.method == 'POST':
                 print('line1') 
-                user_p = request.user
                 prob = Problem.objects.create(Users=user_p)
                 prob.save()
                 pf = problemForm(request.POST,request.FILES,instance=prob)
                 if pf.is_valid():
                     pd = pf.cleaned_data
-                    print('saving problem')
+                    print('saving')
                     pf.save(commit=True)
-                    return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'success':'Saved successfully'})
+                    pfl = Problem.objects.filter(Users=user_p)  
+                    return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'problist':pfl,'success':'Saved successfully'})
                 prob.delete()
-                return render(request,'Problems.html',{'form':pf,'resp_lis':respgrpdropdown,'error':pf._errors})
+                return render(request,'Problems.html',{'form':pf,'resp_lis':respgrpdropdown,'problist':pfl,'error':pf._errors})
                     
             else:
-                return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown})
+                return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'problist':pfl})
         except:
             error='Error occured while saving. Please try again later'  
-            return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'error':error})
+            return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'problist':pfl,'error':error})
     else:
         return  HttpResponseRedirect('/login') 
 
@@ -82,14 +84,35 @@ def problemSelect(request):
         return render(request,'sendProblem.html',{'form':prob})   
     else:
         return  HttpResponseRedirect('/login') 
-
-              
+def Problemdel(request):
+    if request.user.is_authenticated():
+        rpf = problemForm() 
+        respgrpdropdown = Respgrp.objects.all() 
+        user_p = request.user
+        pf = Problem.objects.filter(Users=user_p)
+        try:
+            if request.method == 'POST':
+                print('line1 del') 
+                values = request.POST.getlist(u'problemId')
+                problemlist=Problem.objects.filter(problemId__in=values).delete()
+                pf = Problem.objects.filter(Users=user_p)
+                return render(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'problist':pf,'success':'Deleted successfully'})
+            else:
+                return render(request,'Problems.html',{'form':rpf,'problist':pf,'resp_lis':respgrpdropdown})
+            
+            
+        except:
+            error='Error occured while Deleting. Please try again later'   
+            return(request,'Problems.html',{'form':rpf,'resp_lis':respgrpdropdown,'problist':pf,'error':error})
+    else:
+        return  HttpResponseRedirect('/login')           
     
 def rewards(request):
     if request.user.is_authenticated():
         rf = rewardsForm()
         rrf=rewardsForm()
         user_p = request.user
+        rf = Rewards.objects.filter(Users=user_p)
         try:
             if request.method == 'POST':
                 print('line1') 
@@ -105,12 +128,10 @@ def rewards(request):
                 rf = Rewards.objects.filter(Users=user_p)
                 return render(request,'Reward.html',{'form':rrf,'reward':rf,'error':rw._errors})
             else:
-                rf = Rewards.objects.filter(Users=user_p)
                 return render(request,'Reward.html',{'form':rrf,'reward':rf})
             
             
         except:
-            rf = Rewards.objects.filter(Users=user_p)
             error='Error occured while saving. Please try again later'   
             return render(request,'Reward.html',{'form':rrf,'reward':rf,'error':error})
     else:
@@ -143,7 +164,81 @@ def loginpage(request):
 def logoutpage(request):
     logout(request)
     return HttpResponseRedirect('/login') 
-
+        
+def rewardsdel(request):
+    if request.user.is_authenticated():
+        rf = rewardsForm()
+        rrf=rewardsForm()
+        user_p = request.user
+        rf = Rewards.objects.filter(Users=user_p)
+        try:
+            if request.method == 'POST':
+                print('line1') 
+                values = request.POST.getlist(u'rewards_id')
+                results = [int(i) for i in values]
+                rewardlist=Rewards.objects.filter(rewards_id__in=results).delete()
+                rf = Rewards.objects.filter(Users=user_p)
+                return render(request,'Reward.html',{'form':rrf,'reward':rf,'success':'Deleted successfully'})
+            else:
+                return render(request,'Reward.html',{'form':rrf,'reward':rf})
+            
+            
+        except:
+            error='Error occured while Deleting. Please try again later'   
+            return render(request,'Reward.html',{'form':rrf,'reward':rf,'error':error})
+    else:
+        return  HttpResponseRedirect('/login')
+def devices(request):
+    if request.user.is_authenticated():
+        df = devicesForm()
+        user_p = request.user
+        rf = Devices.objects.filter(Users=user_p)
+        try:
+            if request.method == 'POST':
+                print('line1') 
+                devin=Devices.objects.create(Users=user_p)
+                dev = devicesForm(request.POST,instance=devin)
+                if dev.is_valid():
+                    pd = dev.cleaned_data
+                    print('saving')    
+                    print(pd)
+                    dev.save(commit=True)
+                    rf = Devices.objects.filter(Users=user_p)
+                    return render(request,'Device.html',{'form':df,'devices':rf,'success':'Saved successfully'})
+                devin.delete()
+                return render(request,'Device.html',{'form':df,'devices':rf,'error':dev._errors})
+            else:
+                return render(request,'Device.html',{'form':df,'devices':rf})
+            
+            
+        except:
+            error='Error occured while saving. Please try again later'   
+            return render(request,'Device.html',{'form':df,'devices':rf,'error':error})
+    else:
+        return  HttpResponseRedirect('/login') 
+def devicesdel(request):
+    if request.user.is_authenticated():
+        df = devicesForm()
+        user_p = request.user
+        rf = Devices.objects.filter(Users=user_p)
+        try:
+            if request.method == 'POST':
+                print('line1') 
+                values = request.POST.getlist(u'deviceid')
+                results = [int(i) for i in values]
+                rflisy = Devices.objects.filter(deviceid__in=results).delete()
+                rf = Devices.objects.filter(Users=user_p)
+                return render(request,'Device.html',{'form':df,'devices':rf,'success':'Deleted successfully'})
+                
+            else:
+                return render(request,'Device.html',{'form':df,'devices':rf})
+            
+            
+        except:
+            error='Error occured while Deleting. Please try again later'   
+            return render(request,'Device.html',{'form':df,'devices':rf,'error':error})
+    else:
+        return  HttpResponseRedirect('/login')     
 def problemSend(request):
     if request.user.is_authenticated():
         try:
@@ -163,21 +258,23 @@ def problemSend(request):
                 # <rewards/>
                 xmlrewards = ET.SubElement( pragmatic, 'rewards' )
                 for re in rewards:
-                    xmlreward=ET.SubElement(xmlrewards,'reward')
-                    if re.filetype=='Video':
-                        video = ET.SubElement(xmlreward, 'video')
-                        sha256sum = ET.SubElement(video, 'sha256sum')
-                        sha256sum.text=re.shasum
-                        guid = ET.SubElement(video, 'guid')
-                        guid.text=re.guidvalue
-                    elif re.filetype =='Audio': 
-                        audio = ET.SubElement(xmlreward, 'audio')
-                        sha256sum = ET.SubElement(audio, 'sha256sum')
-                        sha256sum.text=re.sasum
-                        guid = ET.SubElement(audio, 'guid')
-                        guid.text=re.guidvalue 
-                        retype = ET.SubElement(audio, 'type')
-                        retype.text='vorbis'
+                    if re.shasum not in [None, '']:
+                        if re.filetype=='Video':
+                            xmlreward=ET.SubElement(xmlrewards,'reward')
+                            video = ET.SubElement(xmlreward, 'video')
+                            sha256sum = ET.SubElement(video, 'sha256sum')
+                            sha256sum.text=re.shasum
+                            guid = ET.SubElement(video, 'guid')
+                            guid.text=re.guidvalue
+                        elif re.filetype =='Audio': 
+                            xmlreward=ET.SubElement(xmlrewards,'reward')
+                            audio = ET.SubElement(xmlreward, 'audio')
+                            sha256sum = ET.SubElement(audio, 'sha256sum')
+                            sha256sum.text=re.sasum
+                            guid = ET.SubElement(audio, 'guid')
+                            guid.text=re.guidvalue 
+                            retype = ET.SubElement(audio, 'type')
+                            retype.text='vorbis'
               
                 total_weight = ET.SubElement( pragmatic, 'total_weight' )
                 total_weight.text=str(totalweight)   
@@ -188,10 +285,10 @@ def problemSend(request):
                                               'weight':str(pr.weight),})
                                               
                     responses = ET.SubElement( xmlproblem, 'responses' )                          
-                    response = ET.SubElement( responses, 'response',{'group':str(pr.respgrp.respgrp_id),
-                                              'answer':str(pr.answer.respgrpanswer_id),})  
+                    response = ET.SubElement( responses, 'response',{'group':str(pr.AnswerGroup.respgrp_id),
+                                              'answer':str(pr.Answer.respgrpanswer_id),})  
                     text = ET.SubElement( xmlproblem, 'text' )
-                    text.text=str(pr.question)                           
+                    text.text=str(pr.Question)                           
                     xmlimage = ET.SubElement(xmlproblem, 'image')
                     sha256sum = ET.SubElement(xmlimage, 'sha256sum')
                     sha256sum.text=pr.shasum
@@ -202,20 +299,20 @@ def problemSend(request):
                       
                 xmlresponses = ET.SubElement( pragmatic, 'responses' )        
                 for rs in respgrp:
-                    group = ET.SubElement( xmlresponses, 'group',{'name':rs.respgrpname,
+                    group = ET.SubElement( xmlresponses, 'group',{'name':rs.AnswerGroup,
                                               'id':str(rs.respgrp_id),} )
                     rsanswer=Respgrpanswer.objects.filter(Respgrp=rs)
                     for ans in rsanswer:
                         item = ET.SubElement( group, 'item',{'id':str(ans.respgrpanswer_id),} )
                         text = ET.SubElement( item, 'text')
-                        text.text=ans.respgrpanswer
+                        text.text=ans.Answer
                
                 
                 #data=prettify(pragmatic)
                
-                filenames=devicemapping.objects.filter(Users=user_p)
+                filenames=Devices.objects.filter(Users=user_p)
                 for filekey in filenames:
-                    filename=MEDIA_FILE_LINK+filekey.devicekey+'.xml'
+                    filename=MEDIA_FILE_LINK+filekey.DeviceKey+'.xml'
                     print(filename)
                     data=prettify(pragmatic)
                     if not os.path.exists(os.path.dirname(filename)):
